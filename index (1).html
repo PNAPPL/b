@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray:#555555;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    height:100%;
+    font-family:'EB Garamond', Georgia, serif;
+    font-weight:300;
+    color:var(--black);
+  }
+  body{
+    min-height:100vh;
+    background:linear-gradient(to bottom, var(--white) 0%, var(--white) 60%, var(--black) 100%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+  .screen{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:40px;
+  }
+  .screen.active{ display:flex; }
+
+  /* start screen */
+  #screen-start{ cursor:pointer; }
+  #screen-start .begin{
+    font-size:clamp(48px,8vw,96px);
+    font-weight:300;
+    letter-spacing:2px;
+  }
+
+  /* question screens */
+  .label-block{
+    position:absolute;
+    top:60px;
+    left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+    width:min(520px, 80vw);
+  }
+  .label{
+    font-size:clamp(22px,4vw,32px);
+    letter-spacing:3px;
+    text-transform:lowercase;
+  }
+  .definition{
+    margin-top:12px;
+    font-size:14px;
+    letter-spacing:0.3px;
+    line-height:1.5;
+    color:var(--gray);
+    font-weight:300;
+  }
+
+  .slider-wrap{
+    position:relative;
+    width:min(600px, 80vw);
+    height:40px;
+    margin-top:30px;
+  }
+  .track-line{
+    position:absolute;
+    top:50%; left:0; right:0;
+    height:1px;
+    background:rgba(10,10,10,0.3);
+    transform:translateY(-50%);
+    pointer-events:none;
+  }
+  .knobs{
+    position:absolute;
+    top:50%; left:0; right:0;
+    display:flex;
+    justify-content:space-between;
+    transform:translateY(-50%);
+    pointer-events:none;
+  }
+  .knobs span{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:rgba(10,10,10,0.35);
+  }
+  input[type=range]{
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    margin:0;
+    -webkit-appearance:none;
+    appearance:none;
+    background:transparent;
+    outline:none;
+    cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    background:transparent;
+    height:100%;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:18px; height:18px;
+    margin-top:11px;
+    border-radius:50%;
+    background:var(--black);
+    cursor:pointer;
+    border:none;
+    position:relative;
+    z-index:2;
+  }
+  input[type=range]::-moz-range-track{
+    background:transparent;
+    height:100%;
+    border:none;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--black);
+    cursor:pointer;
+    border:none;
+  }
+  .ticks{
+    display:flex;
+    justify-content:space-between;
+    width:min(600px, 80vw);
+    margin-top:8px;
+    font-size:13px;
+    letter-spacing:1px;
+    color:rgba(0,0,0,0.55);
+  }
+  .value-readout{
+    margin-top:34px;
+    font-size:clamp(40px,6vw,64px);
+    font-weight:300;
+  }
+
+  /* notes screen */
+  #screen-notes textarea{
+    width:min(600px, 80vw);
+    height:220px;
+    margin-top:50px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:18px;
+    font-weight:300;
+    padding:16px;
+    resize:none;
+    outline:none;
+  }
+
+  /* result screen */
+  #screen-result .code{
+    font-size:clamp(40px,8vw,100px);
+    font-weight:200;
+    letter-spacing:10px;
+    color:var(--black);
+  }
+  #screen-result .saved-note{
+    margin-top:24px;
+    font-size:14px;
+    letter-spacing:1px;
+    color:rgba(0,0,0,0.55);
+  }
+
+  /* next button, shared */
+  .next-btn{
+    position:fixed;
+    bottom:40px;
+    right:40px;
+    width:80px;
+    height:80px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:20px;
+    font-weight:300;
+    letter-spacing:1px;
+    text-transform:lowercase;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .next-btn:hover{
+    background:var(--black);
+    color:var(--white);
+  }
+</style>
+</head>
+<body>
+
+  <div class="screen active" id="screen-start">
+    <div class="begin">begin</div>
+  </div>
+
+  <!-- question screens are injected by JS, see factors array below -->
+
+  <div class="screen" id="screen-notes">
+    <div class="label">notes</div>
+    <textarea id="notes-input" placeholder=""></textarea>
+    <button class="next-btn" id="finish-btn">finish</button>
+  </div>
+
+  <div class="screen" id="screen-result">
+    <div class="code" id="result-code"></div>
+    <div class="saved-note" id="saved-note"></div>
+  </div>
+
+<script>
+  const factors = [
+    { key: "nihilism", def: "you believe that there is no solid existence and rationality is futile" },
+    { key: "altruism", def: "you should sacrifice yourself for the good of others" },
+    { key: "happiness", def: "you feel joy currently to this degree" },
+    { key: "productivity", def: "you feel this proud for how much you accomplished today" },
+    { key: "purpose", def: "you feel this degree of fulfillment in life and your future, as well as how much you participate in life" },
+    { key: "theism", def: "you feel this degree of belief in a divine power" },
+    { key: "overall", def: "you feel as though this day was worth it to live to this degree" }
+  ];
+  const values = {};
+  const scaleNums = [0,1,2,3,4,5,6,7,8,9,10];
+
+  const body = document.body;
+  const notesScreen = document.getElementById('screen-notes');
+
+  factors.forEach(f => {
+    const screen = document.createElement('div');
+    screen.className = 'screen';
+    screen.id = 'screen-' + f.key;
+
+    screen.innerHTML = `
+      <div class="label-block">
+        <div class="label">${f.key}</div>
+        <div class="definition">${f.def}</div>
+      </div>
+      <div class="slider-wrap">
+        <div class="track-line"></div>
+        <div class="knobs">${scaleNums.map(() => '<span></span>').join('')}</div>
+        <input type="range" min="0" max="10" step="1" value="5" id="slider-${f.key}">
+      </div>
+      <div class="ticks">${scaleNums.map(n => `<span>${n}</span>`).join('')}</div>
+      <div class="value-readout" id="readout-${f.key}">5</div>
+      <button class="next-btn">next</button>
+    `;
+
+    body.insertBefore(screen, notesScreen);
+
+    const slider = screen.querySelector('input[type=range]');
+    const readout = screen.querySelector('.value-readout');
+    slider.addEventListener('input', () => {
+      readout.textContent = slider.value;
+    });
+    values[f.key] = 5;
+  });
+
+  const order = ['start', ...factors.map(f => f.key), 'notes', 'result'];
+  let current = 0;
+
+  function showScreen(name){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+  }
+
+  function goNext(){
+    const leavingName = order[current];
+    if (factors.some(f => f.key === leavingName)) {
+      const slider = document.getElementById('slider-' + leavingName);
+      values[leavingName] = parseInt(slider.value, 10);
+    }
+    current++;
+    showScreen(order[current]);
+    if (order[current] === 'result') {
+      finish();
+    }
+  }
+
+  document.getElementById('screen-start').addEventListener('click', goNext);
+
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('.next-btn') && e.target.id !== 'finish-btn') {
+      goNext();
+    }
+  });
+  document.getElementById('finish-btn').addEventListener('click', goNext);
+
+  function finish(){
+    // 10 is represented as "!" in the final code
+    const code = factors.map(f => values[f.key] === 10 ? '!' : String(values[f.key])).join('');
+    document.getElementById('result-code').textContent = code;
+
+    const notes = document.getElementById('notes-input').value;
+    const entry = {
+      date: new Date().toISOString().slice(0,10),
+      timestamp: new Date().toISOString(),
+      values: {...values},
+      code,
+      notes
+    };
+
+    try {
+      const history = JSON.parse(localStorage.getItem('journal-history') || '[]');
+      history.push(entry);
+      localStorage.setItem('journal-history', JSON.stringify(history));
+      document.getElementById('saved-note').textContent = 'saved to this browser · entry ' + history.length;
+    } catch (err) {
+      document.getElementById('saved-note').textContent = 'could not save locally';
+    }
+  }
+</script>
+</body>
+</html>
