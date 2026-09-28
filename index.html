@@ -70,6 +70,8 @@
     font-weight:300;
   }
 
+  /* slider: the input is 18px wider than the line (9px each side) so the
+     knob's CENTER reaches the very ends of the line */
   .slider-wrap{
     position:relative;
     width:min(600px, 80vw);
@@ -87,20 +89,23 @@
   .knobs{
     position:absolute;
     top:50%; left:0; right:0;
-    display:flex;
-    justify-content:space-between;
-    transform:translateY(-50%);
+    height:0;
     pointer-events:none;
   }
   .knobs span{
+    position:absolute;
+    top:0;
     width:6px; height:6px;
     border-radius:50%;
     background:rgba(10,10,10,0.35);
+    transform:translate(-50%,-50%);
   }
   input[type=range]{
     position:absolute;
-    top:0; left:0;
-    width:100%; height:100%;
+    top:0;
+    left:-9px;
+    width:calc(100% + 18px);
+    height:100%;
     margin:0;
     -webkit-appearance:none;
     appearance:none;
@@ -137,19 +142,58 @@
     border:none;
   }
   .ticks{
-    display:flex;
-    justify-content:space-between;
+    position:relative;
     width:min(600px, 80vw);
+    height:18px;
     margin-top:8px;
     font-size:13px;
     letter-spacing:1px;
     color:rgba(0,0,0,0.55);
+  }
+  .ticks span{
+    position:absolute;
+    top:0;
+    transform:translateX(-50%);
   }
   .value-readout{
     margin-top:34px;
     font-size:clamp(40px,6vw,64px);
     font-weight:300;
   }
+
+  /* arrows screen */
+  .arrow-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    gap:clamp(8px,5vw,60px);
+  }
+  .arrow-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:26px;
+    padding:16px;
+    background:none;
+    border:none;
+    color:var(--black);
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .arrow-btn svg{
+    display:block;
+    width:clamp(44px,10vw,72px);
+    height:auto;
+  }
+  .bubble{
+    display:block;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid var(--black);
+    background:transparent;
+    transition:background 0.15s ease;
+  }
+  .arrow-btn.on .bubble{ background:var(--black); }
 
   /* notes screen */
   #screen-notes textarea{
@@ -203,6 +247,117 @@
     background:var(--black);
     color:var(--white);
   }
+
+  /* database (type j-o-u-r-n-e-y) */
+  #database{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:var(--white);
+    z-index:100;
+    flex-direction:column;
+  }
+  #database.open{ display:flex; }
+  .db-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 28px;
+    border-bottom:1px solid rgba(10,10,10,0.2);
+  }
+  .db-title{
+    font-size:24px;
+    letter-spacing:3px;
+  }
+  .db-close{
+    height:40px;
+    padding:0 20px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:18px;
+    font-weight:300;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .db-close:hover{
+    background:var(--black);
+    color:var(--white);
+  }
+  .db-scroll{
+    flex:1;
+    overflow:auto;
+  }
+  .db-message{
+    padding:60px 28px;
+    text-align:center;
+    color:var(--gray);
+    font-size:18px;
+  }
+  .db-scroll table{
+    border-collapse:separate;
+    border-spacing:0;
+    min-width:100%;
+  }
+  .db-scroll th, .db-scroll td{
+    padding:12px 22px;
+    text-align:center;
+    white-space:nowrap;
+    font-weight:300;
+    font-size:17px;
+    background:var(--white);
+    border-right:1px solid rgba(10,10,10,0.12);
+    border-bottom:1px solid rgba(10,10,10,0.12);
+  }
+  .db-scroll thead th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    font-size:15px;
+    letter-spacing:1px;
+    border-bottom:1px solid rgba(10,10,10,0.5);
+  }
+  .db-scroll thead th.corner{
+    left:0;
+    z-index:3;
+  }
+  .db-scroll .rowhead{
+    position:sticky;
+    left:0;
+    z-index:1;
+    text-align:left;
+    letter-spacing:1px;
+    border-right:1px solid rgba(10,10,10,0.5);
+  }
+  .db-scroll tbody tr:hover > *{ background:#f2f2f2; }
+  .db-scroll .rowhead[data-date]:hover::after{
+    content:attr(data-date);
+    position:absolute;
+    left:calc(100% + 6px);
+    top:50%;
+    transform:translateY(-50%);
+    padding:4px 12px;
+    background:var(--black);
+    color:var(--white);
+    font-size:14px;
+    letter-spacing:1px;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .db-arrow svg{
+    display:block;
+    width:20px; height:20px;
+    margin:0 auto;
+  }
+  .db-scroll .bubble{
+    display:inline-block;
+    width:12px; height:12px;
+    vertical-align:middle;
+  }
+  .db-scroll .bubble.on{ background:var(--black); }
+  .blank{ color:rgba(10,10,10,0.25); }
 </style>
 </head>
 <body>
@@ -211,7 +366,7 @@
     <div class="begin">begin</div>
   </div>
 
-  <!-- question screens are injected by JS, see factors array below -->
+  <!-- question + arrow screens are injected by JS, see the lists below -->
 
   <div class="screen" id="screen-notes">
     <div class="label">notes</div>
@@ -224,6 +379,15 @@
     <div class="saved-note" id="saved-note"></div>
   </div>
 
+  <div id="database">
+    <div class="db-topbar">
+      <div class="db-title">journey</div>
+      <button class="db-close" id="db-close">close</button>
+    </div>
+    <div class="db-scroll" id="db-scroll"></div>
+  </div>
+
+<script src="data.js"></script>
 <script>
   const factors = [
     { key: "nihilism", def: "you feel that there is no solid existence and rationality is futile to this degree" },
@@ -234,12 +398,29 @@
     { key: "theism", def: "you feel this degree of belief in a divine power" },
     { key: "overall", def: "you feel as though this day was worth it to live to this degree" }
   ];
+
+  // ARROWS (left to right). Want fewer? Delete a whole line below.
+  // The screen, the code and the database all adjust automatically.
+  const arrows = [
+    { name: "down",       angle: 90  },
+    { name: "down-right", angle: 45  },
+    { name: "right",      angle: 0   },
+    { name: "up",         angle: -90 }
+  ];
+
   const values = {};
+  const arrowStates = arrows.map(() => 0);
   const scaleNums = [0,1,2,3,4,5,6,7,8,9,10];
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  function arrowSVG(angle){
+    return `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${angle}deg)"><line x1="6" y1="24" x2="42" y2="24"/><polyline points="31,13 42,24 31,35"/></svg>`;
+  }
 
   const body = document.body;
   const notesScreen = document.getElementById('screen-notes');
 
+  // one screen per scale
   factors.forEach(f => {
     const screen = document.createElement('div');
     screen.className = 'screen';
@@ -252,10 +433,10 @@
       </div>
       <div class="slider-wrap">
         <div class="track-line"></div>
-        <div class="knobs">${scaleNums.map(() => '<span></span>').join('')}</div>
+        <div class="knobs">${scaleNums.map(n => `<span style="left:${n * 10}%"></span>`).join('')}</div>
         <input type="range" min="0" max="10" step="1" value="5" id="slider-${f.key}">
       </div>
-      <div class="ticks">${scaleNums.map(n => `<span>${n}</span>`).join('')}</div>
+      <div class="ticks">${scaleNums.map(n => `<span style="left:${n * 10}%">${n}</span>`).join('')}</div>
       <div class="value-readout" id="readout-${f.key}">5</div>
       <button class="next-btn">next</button>
     `;
@@ -270,7 +451,33 @@
     values[f.key] = 5;
   });
 
-  const order = ['start', ...factors.map(f => f.key), 'notes', 'result'];
+  // arrows screen
+  const arrowScreen = document.createElement('div');
+  arrowScreen.className = 'screen';
+  arrowScreen.id = 'screen-arrows';
+  arrowScreen.innerHTML = `
+    <div class="arrow-row">
+      ${arrows.map((a, i) => `
+        <button class="arrow-btn" data-index="${i}" aria-pressed="false" aria-label="${a.name}">
+          ${arrowSVG(a.angle)}
+          <span class="bubble"></span>
+        </button>`).join('')}
+    </div>
+    <button class="next-btn">next</button>
+  `;
+  body.insertBefore(arrowScreen, notesScreen);
+
+  arrowScreen.querySelectorAll('.arrow-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.index, 10);
+      arrowStates[i] = arrowStates[i] ? 0 : 1;
+      btn.classList.toggle('on', arrowStates[i] === 1);
+      btn.setAttribute('aria-pressed', arrowStates[i] === 1 ? 'true' : 'false');
+    });
+  });
+
+  // navigation
+  const order = ['start', ...factors.map(f => f.key), 'arrows', 'notes', 'result'];
   let current = 0;
 
   function showScreen(name){
@@ -301,8 +508,10 @@
   document.getElementById('finish-btn').addEventListener('click', goNext);
 
   function finish(){
-    // 10 is represented as "!" in the final code
-    const code = factors.map(f => values[f.key] === 10 ? '!' : String(values[f.key])).join('');
+    // scales first (10 shows as "!"), then one 1/0 per arrow
+    const likert = factors.map(f => values[f.key] === 10 ? '!' : String(values[f.key])).join('');
+    const arrowBits = arrowStates.map(s => s ? '1' : '0').join('');
+    const code = likert + arrowBits;
     document.getElementById('result-code').textContent = code;
 
     const notes = document.getElementById('notes-input').value;
@@ -310,6 +519,7 @@
       date: new Date().toISOString().slice(0,10),
       timestamp: new Date().toISOString(),
       values: {...values},
+      arrows: [...arrowStates],
       code,
       notes
     };
@@ -323,6 +533,73 @@
       document.getElementById('saved-note').textContent = 'could not save locally';
     }
   }
+
+  // ---------- database ----------
+  const dbEl = document.getElementById('database');
+
+  // turns a code like "5376!261001" into [5,3,7,6,10,2,6,1,0,0,1]
+  function parseCode(code){
+    return String(code || '').replace(/\s/g,'').split('').map(c => {
+      if (c === '!') return 10;
+      return /[0-9]/.test(c) ? parseInt(c, 10) : null;
+    });
+  }
+
+  function buildDatabase(){
+    const box = document.getElementById('db-scroll');
+    if (typeof journalEntries === 'undefined') {
+      box.innerHTML = '<div class="db-message">could not read data.js — make sure it is uploaded next to index.html and has no typos</div>';
+      return;
+    }
+    if (!journalEntries.length) {
+      box.innerHTML = '<div class="db-message">no entries yet</div>';
+      return;
+    }
+    const head = '<tr><th class="corner"></th>'
+      + factors.map(f => `<th>${f.key}</th>`).join('')
+      + arrows.map(a => `<th class="db-arrow">${arrowSVG(a.angle)}</th>`).join('')
+      + '</tr>';
+
+    const rows = journalEntries.map((entry, i) => {
+      const cells = parseCode(entry.code);
+      const scaleCells = factors.map((f, c) =>
+        `<td>${cells[c] == null ? '<span class="blank">–</span>' : cells[c]}</td>`).join('');
+      const arrowCells = arrows.map((a, c) => {
+        const v = cells[factors.length + c];
+        if (v === 1) return '<td><span class="bubble on"></span></td>';
+        if (v === 0) return '<td><span class="bubble"></span></td>';
+        return '<td><span class="blank">–</span></td>';
+      }).join('');
+      const dateAttr = entry.date ? ` data-date="${esc(entry.date)}"` : '';
+      return `<tr><th class="rowhead"${dateAttr}>entry number ${i + 1}</th>${scaleCells}${arrowCells}</tr>`;
+    }).join('');
+
+    box.innerHTML = `<table><thead>${head}</thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function openDatabase(){
+    buildDatabase();
+    dbEl.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  }
+  function closeDatabase(){
+    dbEl.classList.remove('open');
+  }
+  document.getElementById('db-close').addEventListener('click', closeDatabase);
+
+  // typing j-o-u-r-n-e-y anywhere (except inside the notes box) toggles the database
+  let typed = '';
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeDatabase(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.tagName === 'TEXTAREA') return;
+    if (e.key.length !== 1) return;
+    typed = (typed + e.key.toLowerCase()).slice(-7);
+    if (typed === 'journey') {
+      typed = '';
+      dbEl.classList.contains('open') ? closeDatabase() : openDatabase();
+    }
+  });
 </script>
 </body>
 </html>
