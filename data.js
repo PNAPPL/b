@@ -23,8 +23,6 @@
 
 const journalEntries = [
 
-  { date: "2026-09-24", code: "4526538" },
-  { date: "2026-09-25", code: "53764261001" },
-  { date: "2026-09-26", code: "286!5470110" },
+  { date: "2026-09-28", code: "79363551010#ffffff", notes: "first one" },
 
 ];
