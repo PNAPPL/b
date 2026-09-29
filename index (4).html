@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray:#777777;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    height:100%;
+    font-family:'EB Garamond', Georgia, serif;
+    font-weight:300;
+    color:var(--black);
+  }
+  body{
+    min-height:100vh;
+    background:linear-gradient(to bottom, var(--white) 0%, var(--white) 20%, var(--black) 100%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+  .screen{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:40px;
+  }
+  .screen.active{ display:flex; }
+
+  /* start screen */
+  #screen-start{ cursor:pointer; }
+  #screen-start .begin{
+    font-size:clamp(48px,8vw,96px);
+    font-weight:300;
+    letter-spacing:2px;
+  }
+
+  /* question screens */
+  .label-block{
+    position:absolute;
+    top:60px;
+    left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+    width:min(520px, 80vw);
+  }
+  .label{
+    font-size:clamp(22px,4vw,32px);
+    letter-spacing:3px;
+    text-transform:lowercase;
+  }
+  .definition{
+    margin-top:12px;
+    font-size:14px;
+    letter-spacing:0.3px;
+    line-height:1.5;
+    color:var(--gray);
+    font-weight:300;
+  }
+
+  /* slider: the input is 18px wider than the line (9px each side) so the
+     knob's CENTER reaches the very ends of the line */
+  .slider-wrap{
+    position:relative;
+    width:min(600px, 80vw);
+    height:40px;
+    margin-top:30px;
+  }
+  .track-line{
+    position:absolute;
+    top:50%; left:0; right:0;
+    height:1px;
+    background:rgba(10,10,10,0.3);
+    transform:translateY(-50%);
+    pointer-events:none;
+  }
+  .knobs{
+    position:absolute;
+    top:50%; left:0; right:0;
+    height:0;
+    pointer-events:none;
+  }
+  .knobs span{
+    position:absolute;
+    top:0;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:rgba(10,10,10,0.35);
+    transform:translate(-50%,-50%);
+  }
+  input[type=range]{
+    position:absolute;
+    top:0;
+    left:-9px;
+    width:calc(100% + 18px);
+    height:100%;
+    margin:0;
+    -webkit-appearance:none;
+    appearance:none;
+    background:transparent;
+    outline:none;
+    cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    background:transparent;
+    height:100%;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:18px; height:18px;
+    margin-top:11px;
+    border-radius:50%;
+    background:var(--black);
+    cursor:pointer;
+    border:none;
+    position:relative;
+    z-index:2;
+  }
+  input[type=range]::-moz-range-track{
+    background:transparent;
+    height:100%;
+    border:none;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--black);
+    cursor:pointer;
+    border:none;
+  }
+  .ticks{
+    position:relative;
+    width:min(600px, 80vw);
+    height:18px;
+    margin-top:8px;
+    font-size:13px;
+    letter-spacing:1px;
+    color:rgba(0,0,0,0.55);
+  }
+  .ticks span{
+    position:absolute;
+    top:0;
+    transform:translateX(-50%);
+  }
+  .value-readout{
+    margin-top:34px;
+    font-size:clamp(40px,6vw,64px);
+    font-weight:300;
+  }
+
+  /* arrows screen */
+  .arrow-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    gap:clamp(8px,5vw,60px);
+  }
+  .arrow-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:26px;
+    padding:16px;
+    background:none;
+    border:none;
+    color:var(--black);
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .arrow-btn svg{
+    display:block;
+    width:clamp(44px,10vw,72px);
+    height:auto;
+  }
+  .bubble{
+    display:block;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid var(--black);
+    background:transparent;
+    transition:background 0.15s ease;
+  }
+  .arrow-btn.on .bubble{ background:var(--black); }
+
+  /* notes screen */
+  #screen-notes{ justify-content:flex-start; padding-top:60px; }
+  #screen-notes textarea{
+    width:min(600px, 80vw);
+    height:200px;
+    margin-top:36px;
+    border:1px solid var(--note-ink, var(--black));
+    background:var(--note-bg, #ffffff);
+    color:var(--note-ink, var(--black));
+    caret-color:var(--note-ink, var(--black));
+    font-family:inherit;
+    font-size:18px;
+    font-weight:300;
+    padding:16px;
+    resize:none;
+    outline:none;
+    overflow-y:auto;
+  }
+  /* thin scroll sliders (notes box + notes textarea) */
+  #screen-notes textarea, .nb-text{
+    scrollbar-width:thin;
+    scrollbar-color:var(--note-ink-soft, rgba(10,10,10,0.5)) transparent;
+  }
+  #screen-notes textarea::-webkit-scrollbar, .nb-text::-webkit-scrollbar{ width:6px; }
+  #screen-notes textarea::-webkit-scrollbar-track, .nb-text::-webkit-scrollbar-track{ background:transparent; }
+  #screen-notes textarea::-webkit-scrollbar-thumb, .nb-text::-webkit-scrollbar-thumb{
+    background:var(--note-ink-soft, rgba(10,10,10,0.5));
+    border-radius:3px;
+  }
+
+  /* colour sliders under the notes */
+  .color-controls{ width:min(600px, 80vw); margin-top:22px; }
+  .color-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    height:32px;
+    font-size:15px;
+    letter-spacing:1px;
+    text-align:left;
+  }
+  .color-name{ width:96px; }
+  .color-val{ width:36px; text-align:right; font-size:13px; color:rgba(0,0,0,0.65); }
+  .mini{ position:relative; flex:1; height:32px; margin:0 9px; }
+  .mini input[type=range]::-webkit-slider-thumb{ margin-top:7px; }
+
+  /* result screen */
+  #screen-result .code{
+    font-size:clamp(40px,8vw,100px);
+    font-weight:200;
+    letter-spacing:10px;
+    color:var(--black);
+  }
+  .code-line{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:baseline;
+    gap:4px 28px;
+  }
+  #screen-result .code-color{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-size:clamp(20px,3vw,32px);
+    font-weight:300;
+    letter-spacing:3px;
+  }
+  .swatch{ width:18px; height:18px; border:1px solid var(--black); }
+  .copy-btn{
+    margin-top:44px;
+    height:40px;
+    padding:0 22px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:18px;
+    font-weight:300;
+    letter-spacing:1px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .copy-btn:hover{ background:var(--black); color:var(--white); }
+  #screen-result .saved-note{
+    margin-top:24px;
+    font-size:14px;
+    letter-spacing:1px;
+    color:rgba(0,0,0,0.55);
+  }
+
+  /* next button, shared */
+  .next-btn{
+    position:fixed;
+    bottom:40px;
+    right:40px;
+    width:80px;
+    height:80px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:20px;
+    font-weight:300;
+    letter-spacing:1px;
+    text-transform:lowercase;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .next-btn:hover{
+    background:var(--black);
+    color:var(--white);
+  }
+
+  /* database (type j-o-u-r-n-e-y) */
+  #database{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:var(--white);
+    z-index:100;
+    flex-direction:column;
+  }
+  #database.open{ display:flex; }
+  .db-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 28px;
+    border-bottom:1px solid rgba(10,10,10,0.2);
+  }
+  .db-title{
+    font-size:24px;
+    letter-spacing:3px;
+  }
+  .db-close{
+    height:40px;
+    padding:0 20px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:18px;
+    font-weight:300;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .db-close:hover{
+    background:var(--black);
+    color:var(--white);
+  }
+  .db-scroll{
+    flex:1;
+    overflow:auto;
+  }
+  .db-message{
+    padding:60px 28px;
+    text-align:center;
+    color:var(--gray);
+    font-size:18px;
+  }
+  .db-scroll table{
+    border-collapse:separate;
+    border-spacing:0;
+    min-width:100%;
+  }
+  .db-scroll th, .db-scroll td{
+    padding:12px 22px;
+    text-align:center;
+    white-space:nowrap;
+    font-weight:300;
+    font-size:17px;
+    background:var(--white);
+    border-right:1px solid rgba(10,10,10,0.12);
+    border-bottom:1px solid rgba(10,10,10,0.12);
+  }
+  .db-scroll thead th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    font-size:15px;
+    letter-spacing:1px;
+    border-bottom:1px solid rgba(10,10,10,0.5);
+  }
+  .db-scroll thead th.corner{
+    left:0;
+    z-index:3;
+  }
+  .db-scroll .rowhead{
+    position:sticky;
+    left:0;
+    z-index:1;
+    text-align:left;
+    letter-spacing:1px;
+    border-right:1px solid rgba(10,10,10,0.5);
+  }
+  .db-scroll tbody tr:hover > *{ background:#f2f2f2; }
+  .db-scroll .rowhead[data-date]:hover::after{
+    content:attr(data-date);
+    position:absolute;
+    left:calc(100% + 6px);
+    top:50%;
+    transform:translateY(-50%);
+    padding:4px 12px;
+    background:var(--black);
+    color:var(--white);
+    font-size:14px;
+    letter-spacing:1px;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .db-arrow svg{
+    display:block;
+    width:20px; height:20px;
+    margin:0 auto;
+  }
+  .db-scroll .bubble{
+    display:inline-block;
+    width:12px; height:12px;
+    vertical-align:middle;
+  }
+  .db-scroll .bubble.on{ background:var(--black); }
+  .blank{ color:rgba(10,10,10,0.25); }
+  .db-spacer{ height:0; }
+  #database.notes-open .db-spacer{ height:240px; }
+
+  /* notes box (hover a day, type e-e) */
+  #notes-box{
+    display:none;
+    position:absolute;
+    left:50%;
+    bottom:28px;
+    transform:translateX(-50%);
+    width:min(720px, 92vw);
+    height:200px;
+    flex-direction:column;
+    padding:12px 16px 16px 22px;
+    background:var(--note-bg, #ffffff);
+    color:var(--note-ink, var(--black));
+    border:1px solid var(--note-ink, var(--black));
+    box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    z-index:20;
+  }
+  #notes-box.open{ display:flex; }
+  .nb-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .nb-title{ font-size:14px; letter-spacing:1px; color:var(--note-ink-soft, rgba(10,10,10,0.5)); }
+  .nb-close{
+    width:28px; height:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:none;
+    border:none;
+    color:var(--note-ink, var(--black));
+    cursor:pointer;
+  }
+  .nb-close svg{ width:14px; height:14px; }
+  .nb-text{
+    flex:1;
+    overflow-y:auto;
+    padding-right:14px;
+    font-size:18px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+  .nb-text.empty{ color:var(--note-ink-soft, rgba(10,10,10,0.5)); }
+
+  /* stats mode (type a-m-o-d-e): the data screen inverts, the question box stays white */
+  #database.inverted{ background:var(--black); color:var(--white); }
+  #database.inverted .db-topbar{ border-bottom-color:rgba(255,255,255,0.25); }
+  #database.inverted .db-close{ border-color:var(--white); color:var(--white); }
+  #database.inverted .db-close:hover{ background:var(--white); color:var(--black); }
+  #database.inverted .db-scroll th, #database.inverted .db-scroll td{
+    background:var(--black);
+    border-right-color:rgba(255,255,255,0.16);
+    border-bottom-color:rgba(255,255,255,0.16);
+  }
+  #database.inverted .db-scroll thead th{ border-bottom-color:rgba(255,255,255,0.5); }
+  #database.inverted .db-scroll .rowhead{ border-right-color:rgba(255,255,255,0.5); }
+  #database.inverted .db-scroll tbody tr:hover > *{ background:#1c1c1c; }
+  #database.inverted .db-scroll .rowhead[data-date]:hover::after{ background:var(--white); color:var(--black); }
+  #database.inverted .db-scroll .bubble{ border-color:var(--white); }
+  #database.inverted .db-scroll .bubble.on{ background:var(--white); }
+  #database.inverted .blank{ color:rgba(255,255,255,0.3); }
+  #database.inverted .db-message{ color:rgba(255,255,255,0.6); }
+
+  /* result row pinned to the bottom of the table */
+  .db-scroll tfoot th, .db-scroll tfoot td{
+    position:sticky;
+    bottom:0;
+    z-index:2;
+    font-size:19px;
+    border-top:1px solid rgba(255,255,255,0.7);
+  }
+  .db-scroll tfoot .rowhead{ left:0; z-index:3; }
+  .db-scroll tfoot small{ display:block; margin-top:2px; font-size:13px; letter-spacing:1px; opacity:0.6; }
+
+  /* the white question box */
+  #ask-box{
+    display:none;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(560px, 90vw);
+    padding:30px 34px 34px;
+    background:#ffffff;
+    color:var(--black);
+    border:1px solid var(--black);
+    z-index:30;
+  }
+  #ask-box.open{ display:block; }
+  .ask-x{
+    position:absolute;
+    top:10px; right:10px;
+    width:28px; height:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:none;
+    border:none;
+    color:var(--black);
+    cursor:pointer;
+  }
+  .ask-x svg{ width:14px; height:14px; }
+  .ask-q{ font-size:30px; letter-spacing:3px; }
+  .ask-opts{ display:flex; flex-wrap:wrap; gap:12px; margin-top:24px; }
+  .ask-opt{
+    flex:1 1 auto;
+    height:52px;
+    padding:0 22px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:20px;
+    font-weight:300;
+    letter-spacing:1px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .ask-opt:hover{ background:var(--black); color:var(--white); }
+  .ask-which-row{ display:flex; gap:10px; margin-top:24px; }
+  .ask-input{
+    flex:1;
+    min-width:0;
+    height:52px;
+    padding:0 18px;
+    border:1px solid var(--black);
+    background:transparent;
+    color:var(--black);
+    font-family:inherit;
+    font-size:20px;
+    font-weight:300;
+    letter-spacing:1px;
+    outline:none;
+  }
+  .ask-go{ flex:0 0 auto; width:64px; padding:0; }
+  .ask-hint{
+    margin-top:16px;
+    font-size:12px;
+    letter-spacing:0.4px;
+    line-height:1.7;
+    color:#8a8a8a;
+    text-align:left;
+  }
+  .ask-error{ margin-top:10px; color:#b33333; }
+  .ask-sub{ margin-top:18px; font-size:14px; letter-spacing:1px; color:#8a8a8a; }
+</style>
+</head>
+<body>
+
+  <div class="screen active" id="screen-start">
+    <div class="begin">begin</div>
+  </div>
+
+  <!-- question + arrow screens are injected by JS, see the lists below -->
+
+  <div class="screen" id="screen-notes">
+    <div class="label">notes</div>
+    <textarea id="notes-input" placeholder=""></textarea>
+    <div class="color-controls">
+      <div class="color-row"><span class="color-name">hue</span><div class="mini"><div class="track-line"></div><input type="range" id="hue" min="0" max="360" step="1" value="0"></div><span class="color-val" id="hue-val">0</span></div>
+      <div class="color-row"><span class="color-name">brightness</span><div class="mini"><div class="track-line"></div><input type="range" id="bri" min="0" max="100" step="1" value="100"></div><span class="color-val" id="bri-val">100</span></div>
+      <div class="color-row"><span class="color-name">saturation</span><div class="mini"><div class="track-line"></div><input type="range" id="sat" min="0" max="100" step="1" value="0"></div><span class="color-val" id="sat-val">0</span></div>
+    </div>
+    <button class="next-btn" id="finish-btn">finish</button>
+  </div>
+
+  <div class="screen" id="screen-result">
+    <div class="code-line">
+      <div class="code" id="result-code"></div>
+      <div class="code-color"><span class="swatch" id="result-swatch"></span><span id="result-color"></span></div>
+    </div>
+    <button class="copy-btn" id="copy-btn">copy entry</button>
+    <div class="saved-note" id="saved-note"></div>
+  </div>
+
+  <div id="database">
+    <div class="db-topbar">
+      <div class="db-title">journey</div>
+      <button class="db-close" id="db-close">close</button>
+    </div>
+    <div class="db-scroll" id="db-scroll"></div>
+    <div id="notes-box">
+      <div class="nb-head">
+        <span class="nb-title" id="nb-title"></span>
+        <button class="nb-close" id="nb-close" aria-label="close notes"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg></button>
+      </div>
+      <div class="nb-text" id="nb-text"></div>
+    </div>
+    <div id="ask-box">
+      <button class="ask-x" id="ask-x" aria-label="close"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg></button>
+      <div class="ask-q" id="ask-q"></div>
+      <div class="ask-opts" id="ask-opts"></div>
+    </div>
+  </div>
+
+<script src="data.js"></script>
+<script>
+  const factors = [
+    { key: "nihilism", def: "you feel that there is no solid existence and rationality is futile to this degree" },
+    { key: "altruism", def: "you feel you should sacrifice yourself for the good of others to this degree" },
+    { key: "happiness", def: "you feel this degree of joy currently" },
+    { key: "productivity", def: "you feel this degree of proud for how much you accomplished today" },
+    { key: "purpose", def: "you feel this degree of fulfillment in life and your future, as well as how much you participate in life" },
+    { key: "theism", def: "you feel this degree of belief in a divine power" },
+    { key: "overall", def: "you feel as though this day was worth it to live to this degree" }
+  ];
+
+  // ARROWS (left to right). Want fewer? Delete a whole line below.
+  // The screen, the code and the database all adjust automatically.
+  const arrows = [
+    { name: "downarrow",  angle: 90  },
+    { name: "sidearrow",  angle: 45  },
+    { name: "rightarrow", angle: 0   },
+    { name: "uparrow",    angle: -90 }
+  ];
+  // column order exactly matches the table: 7 scales, then the 4 arrows
+  const COLUMN_NAMES = [...factors.map(f => f.key), ...arrows.map(a => a.name)];
+
+  const values = {};
+  const arrowStates = arrows.map(() => 0);
+  const scaleNums = [0,1,2,3,4,5,6,7,8,9,10];
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  function arrowSVG(angle){
+    return `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${angle}deg)"><line x1="6" y1="24" x2="42" y2="24"/><polyline points="31,13 42,24 31,35"/></svg>`;
+  }
+
+  const body = document.body;
+  const notesScreen = document.getElementById('screen-notes');
+
+  // one screen per scale
+  factors.forEach(f => {
+    const screen = document.createElement('div');
+    screen.className = 'screen';
+    screen.id = 'screen-' + f.key;
+
+    screen.innerHTML = `
+      <div class="label-block">
+        <div class="label">${f.key}</div>
+        <div class="definition">${f.def}</div>
+      </div>
+      <div class="slider-wrap">
+        <div class="track-line"></div>
+        <div class="knobs">${scaleNums.map(n => `<span style="left:${n * 10}%"></span>`).join('')}</div>
+        <input type="range" min="0" max="10" step="1" value="5" id="slider-${f.key}">
+      </div>
+      <div class="ticks">${scaleNums.map(n => `<span style="left:${n * 10}%">${n}</span>`).join('')}</div>
+      <div class="value-readout" id="readout-${f.key}">5</div>
+      <button class="next-btn">next</button>
+    `;
+
+    body.insertBefore(screen, notesScreen);
+
+    const slider = screen.querySelector('input[type=range]');
+    const readout = screen.querySelector('.value-readout');
+    slider.addEventListener('input', () => {
+      readout.textContent = slider.value;
+    });
+    values[f.key] = 5;
+  });
+
+  // arrows screen
+  const arrowScreen = document.createElement('div');
+  arrowScreen.className = 'screen';
+  arrowScreen.id = 'screen-arrows';
+  arrowScreen.innerHTML = `
+    <div class="arrow-row">
+      ${arrows.map((a, i) => `
+        <button class="arrow-btn" data-index="${i}" aria-pressed="false" aria-label="${a.name}">
+          ${arrowSVG(a.angle)}
+          <span class="bubble"></span>
+        </button>`).join('')}
+    </div>
+    <button class="next-btn">next</button>
+  `;
+  body.insertBefore(arrowScreen, notesScreen);
+
+  arrowScreen.querySelectorAll('.arrow-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.index, 10);
+      arrowStates[i] = arrowStates[i] ? 0 : 1;
+      btn.classList.toggle('on', arrowStates[i] === 1);
+      btn.setAttribute('aria-pressed', arrowStates[i] === 1 ? 'true' : 'false');
+    });
+  });
+
+  // navigation
+  const order = ['start', ...factors.map(f => f.key), 'arrows', 'notes', 'result'];
+  let current = 0;
+
+  function showScreen(name){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+  }
+
+  function goNext(){
+    const leavingName = order[current];
+    if (factors.some(f => f.key === leavingName)) {
+      const slider = document.getElementById('slider-' + leavingName);
+      values[leavingName] = parseInt(slider.value, 10);
+    }
+    current++;
+    showScreen(order[current]);
+    if (order[current] === 'result') {
+      finish();
+    }
+  }
+
+  document.getElementById('screen-start').addEventListener('click', goNext);
+
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('.next-btn') && e.target.id !== 'finish-btn') {
+      goNext();
+    }
+  });
+  document.getElementById('finish-btn').addEventListener('click', goNext);
+
+  function localDate(){
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  let entryLine = '';
+
+  function finish(){
+    // scales first (10 shows as "!"), then one 1/0 per arrow; the colour hex is shown after
+    const likert = factors.map(f => values[f.key] === 10 ? '!' : String(values[f.key])).join('');
+    const arrowBits = arrowStates.map(s => s ? '1' : '0').join('');
+    const code = likert + arrowBits;
+    document.getElementById('result-code').textContent = code;
+    document.getElementById('result-color').textContent = noteColor;
+    document.getElementById('result-swatch').style.background = noteColor;
+
+    const notes = document.getElementById('notes-input').value;
+    const date = localDate();
+    // ready-to-paste row for data.js (quotes and line breaks are escaped for you)
+    entryLine = `  { date: ${JSON.stringify(date)}, code: ${JSON.stringify(code + noteColor)}, notes: ${JSON.stringify(notes)} },`;
+    const entry = {
+      date,
+      timestamp: new Date().toISOString(),
+      values: {...values},
+      arrows: [...arrowStates],
+      code,
+      color: noteColor,
+      notes
+    };
+
+    try {
+      const history = JSON.parse(localStorage.getItem('journal-history') || '[]');
+      history.push(entry);
+      localStorage.setItem('journal-history', JSON.stringify(history));
+      document.getElementById('saved-note').textContent = 'saved to this browser · entry ' + history.length;
+    } catch (err) {
+      document.getElementById('saved-note').textContent = 'could not save locally';
+    }
+  }
+
+  // ---------- notes colour ----------
+  function hsbToHex(h, s, b){
+    s /= 100; b /= 100;
+    const k = n => (n + h / 60) % 6;
+    const f = n => b - b * s * Math.max(0, Math.min(k(n), 4 - k(n), 1));
+    const hx = x => Math.round(x * 255).toString(16).padStart(2, '0');
+    return '#' + hx(f(5)) + hx(f(3)) + hx(f(1));
+  }
+  // sets the box colour; light colours get black text, dark colours get white text
+  function applyNoteColors(el, hex){
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const darkInk = (r * 299 + g * 587 + b * 114) / 1000 > 140;
+    el.style.setProperty('--note-bg', hex);
+    el.style.setProperty('--note-ink', darkInk ? '#0a0a0a' : '#ffffff');
+    el.style.setProperty('--note-ink-soft', darkInk ? 'rgba(10,10,10,0.5)' : 'rgba(255,255,255,0.65)');
+  }
+  const notesInput = document.getElementById('notes-input');
+  const hueEl = document.getElementById('hue');
+  const briEl = document.getElementById('bri');
+  const satEl = document.getElementById('sat');
+  let noteColor = '#ffffff';
+  function updateNoteColor(){
+    noteColor = hsbToHex(+hueEl.value, +satEl.value, +briEl.value);
+    document.getElementById('hue-val').textContent = hueEl.value;
+    document.getElementById('bri-val').textContent = briEl.value;
+    document.getElementById('sat-val').textContent = satEl.value;
+    applyNoteColors(notesInput, noteColor);
+  }
+  [hueEl, briEl, satEl].forEach(el => el.addEventListener('input', updateNoteColor));
+  updateNoteColor();
+
+  // "copy entry" button on the last screen
+  const copyBtn = document.getElementById('copy-btn');
+  function fallbackCopy(text){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+  copyBtn.addEventListener('click', async () => {
+    let ok = false;
+    try { await navigator.clipboard.writeText(entryLine); ok = true; } catch (err) { ok = fallbackCopy(entryLine); }
+    copyBtn.textContent = ok ? 'copied' : 'copy failed';
+    setTimeout(() => { copyBtn.textContent = 'copy entry'; }, 1800);
+  });
+
+  // ---------- database ----------
+  const dbEl = document.getElementById('database');
+
+  // turns a code like "5376!261001" into [5,3,7,6,10,2,6,1,0,0,1]
+  function parseCode(code){
+    return String(code || '').replace(/\s/g,'').split('').map(c => {
+      if (c === '!') return 10;
+      return /[0-9]/.test(c) ? parseInt(c, 10) : null;
+    });
+  }
+
+  // splits "53764261001#a3c4f0" into the number cells and the notes-box colour
+  function parseEntry(entry){
+    const raw = String(entry.code || '');
+    const at = raw.indexOf('#');
+    const hex = at === -1 ? null : raw.slice(at).match(/^#([0-9a-fA-F]{6})/);
+    return {
+      cells: parseCode(at === -1 ? raw : raw.slice(0, at)),
+      color: hex ? '#' + hex[1].toLowerCase() : '#ffffff'
+    };
+  }
+
+  function buildDatabase(){
+    const box = document.getElementById('db-scroll');
+    if (typeof journalEntries === 'undefined') {
+      box.innerHTML = '<div class="db-message">could not read data.js — make sure it is uploaded next to index.html and has no typos</div>';
+      return;
+    }
+    if (!journalEntries.length) {
+      box.innerHTML = '<div class="db-message">no entries yet</div>';
+      return;
+    }
+    const head = '<tr><th class="corner"></th>'
+      + factors.map(f => `<th>${f.key}</th>`).join('')
+      + arrows.map(a => `<th class="db-arrow">${arrowSVG(a.angle)}</th>`).join('')
+      + '</tr>';
+
+    const rows = journalEntries.map((entry, i) => {
+      const { cells } = parseEntry(entry);
+      const scaleCells = factors.map((f, c) =>
+        `<td>${cells[c] == null ? '<span class="blank">–</span>' : cells[c]}</td>`).join('');
+      const arrowCells = arrows.map((a, c) => {
+        const v = cells[factors.length + c];
+        if (v === 1) return '<td><span class="bubble on"></span></td>';
+        if (v === 0) return '<td><span class="bubble"></span></td>';
+        return '<td><span class="blank">–</span></td>';
+      }).join('');
+      const dateAttr = entry.date ? ` data-date="${esc(entry.date)}"` : '';
+      return `<tr data-index="${i}"><th class="rowhead"${dateAttr}>entry number ${i + 1}</th>${scaleCells}${arrowCells}</tr>`;
+    }).join('');
+
+    box.innerHTML = `<table><thead>${head}</thead><tbody>${rows}</tbody></table><div class="db-spacer"></div>`;
+  }
+
+  function openDatabase(){
+    buildDatabase();
+    hoveredRow = null;
+    dbEl.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  }
+  function closeDatabase(){
+    closeNotes();
+    endStats();
+    dbEl.classList.remove('open');
+  }
+  document.getElementById('db-close').addEventListener('click', closeDatabase);
+
+  // ---------- notes box (hover a day in the database, type e-e) ----------
+  const notesBox = document.getElementById('notes-box');
+  let hoveredRow = null;
+  let notesOpenFor = null;
+  let typed = '';
+
+  function openNotes(i){
+    const entry = journalEntries[i];
+    applyNoteColors(notesBox, parseEntry(entry).color);
+    document.getElementById('nb-title').textContent = 'entry number ' + (i + 1) + (entry.date ? ' · ' + entry.date : '');
+    const text = document.getElementById('nb-text');
+    text.textContent = entry.notes ? entry.notes : 'no notes for this day';
+    text.classList.toggle('empty', !entry.notes);
+    text.scrollTop = 0;
+    notesBox.classList.add('open');
+    dbEl.classList.add('notes-open');
+    notesOpenFor = i;
+  }
+  function closeNotes(){
+    notesBox.classList.remove('open');
+    dbEl.classList.remove('notes-open');
+    notesOpenFor = null;
+  }
+  document.getElementById('nb-close').addEventListener('click', closeNotes);
+
+  // remember which day (row) the mouse is over
+  const dbScroll = document.getElementById('db-scroll');
+  dbScroll.addEventListener('mouseover', (e) => {
+    const tr = e.target.closest('tr');
+    const idx = tr && tr.dataset.index !== undefined ? parseInt(tr.dataset.index, 10) : null;
+    if (idx !== hoveredRow) { hoveredRow = idx; typed = ''; }
+  });
+  dbScroll.addEventListener('mouseleave', () => { hoveredRow = null; typed = ''; });
+
+  // ---------- stats mode (type a-m-o-d-e on the data screen) ----------
+  const askBox = document.getElementById('ask-box');
+  const WHEN = [
+    { label: 'last week',  days: 7,        hint: 'past 7 days' },
+    { label: 'last month', days: 30,       hint: 'past 30 days' },
+    { label: 'last year',  days: 365,      hint: 'past 365 days' },
+    { label: 'all',        days: Infinity, hint: 'all days' }
+  ];
+  let statsMode = false;
+  let askStage = 0;   // 1 type, 2 when, 3 which, 4 result
+  let askType = null;
+  let askWhen = null;
+  let askCol = null;
+
+  // whole days between an entry's date and today (0 = today); null if the date can't be read
+  function daysAgo(entry){
+    const raw = String(entry.date || '').trim();
+    const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(raw);
+    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(raw);
+    if (isNaN(d)) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return Math.round((today - d) / 86400000);
+  }
+
+  function stat(type, vals){
+    if (!vals.length) return '–';
+    const r2 = x => String(Math.round(x * 100) / 100);
+    if (type === 'mean') return r2(vals.reduce((a, b) => a + b, 0) / vals.length);
+    if (type === 'median') {
+      const v = [...vals].sort((a, b) => a - b), m = Math.floor(v.length / 2);
+      return r2(v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2);
+    }
+    const count = {};
+    vals.forEach(v => { count[v] = (count[v] || 0) + 1; });
+    const top = Math.max(...Object.values(count));
+    if (top === 1 && vals.length > 1) return 'none';
+    return Object.keys(count).filter(k => count[k] === top).map(Number).sort((a, b) => a - b).join(', ');
+  }
+
+  function showAsk(stage){
+    askStage = stage;
+    const q = document.getElementById('ask-q');
+    const opts = document.getElementById('ask-opts');
+    if (stage === 1){
+      q.textContent = 'type?';
+      opts.innerHTML = ['mean', 'median', 'mode'].map(t => `<button class="ask-opt" data-v="${t}">${t}</button>`).join('');
+    } else if (stage === 2){
+      q.textContent = 'when?';
+      opts.innerHTML = WHEN.map(w => `<button class="ask-opt" data-v="${w.label}" title="${w.hint}">${w.label}</button>`).join('');
+    } else if (stage === 3){
+      q.textContent = 'which?';
+      opts.innerHTML = `<div class="ask-which-row">
+          <input type="text" class="ask-input" id="ask-which" autocomplete="off" spellcheck="false" placeholder="column name">
+          <button class="ask-opt ask-go" id="ask-go">go</button>
+        </div>
+        <div class="ask-hint">${COLUMN_NAMES.join(' · ')}</div>`;
+      const inp = document.getElementById('ask-which');
+      inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') submitWhich(); });
+      inp.focus();
+    }
+    askBox.classList.add('open');
+  }
+  function startStats(){
+    if (typeof journalEntries === 'undefined' || !journalEntries.length) return;
+    closeNotes();
+    statsMode = true;
+    askType = null; askWhen = null; askCol = null;
+    dbEl.classList.add('inverted');
+    showAsk(1);
+  }
+  function endStats(){
+    statsMode = false;
+    askStage = 0;
+    askType = null; askWhen = null; askCol = null;
+    askBox.classList.remove('open');
+    dbEl.classList.remove('inverted');
+  }
+  document.getElementById('ask-x').addEventListener('click', endStats);
+
+  function submitWhich(){
+    const raw = document.getElementById('ask-which').value.trim().toLowerCase();
+    const idx = COLUMN_NAMES.indexOf(raw);
+    if (idx === -1){
+      let err = document.getElementById('ask-error');
+      if (!err){
+        err = document.createElement('div');
+        err.id = 'ask-error';
+        err.className = 'ask-hint ask-error';
+        document.getElementById('ask-opts').appendChild(err);
+      }
+      err.textContent = raw ? '"' + raw + '" isn\'t a column — try one of the names above' : 'type one of the names above';
+      return;
+    }
+    askCol = idx;
+
+    const rows = journalEntries.filter(en => {
+      if (askWhen.days === Infinity) return true;
+      const ago = daysAgo(en);
+      return ago !== null && ago >= 0 && ago < askWhen.days;
+    }).map(en => parseEntry(en).cells);
+    const vals = rows.map(r => r[askCol]).filter(v => v != null);
+    const result = stat(askType, vals);
+
+    askStage = 4;
+    document.getElementById('ask-q').textContent = result;
+    document.getElementById('ask-opts').innerHTML =
+      `<div class="ask-sub">${askType} · ${COLUMN_NAMES[askCol]} · ${askWhen.label} · ${vals.length} ${vals.length === 1 ? 'entry' : 'entries'}</div>`;
+  }
+
+  document.getElementById('ask-opts').addEventListener('click', (e) => {
+    if (e.target.closest('#ask-go')) { submitWhich(); return; }
+    const btn = e.target.closest('.ask-opt');
+    if (!btn) return;
+    if (askStage === 1) { askType = btn.dataset.v; showAsk(2); return; }
+    if (askStage === 2) { askWhen = WHEN.find(w => w.label === btn.dataset.v); showAsk(3); return; }
+  });
+
+  // j-o-u-r-n-e-y toggles the database; a-m-o-d-e opens stats; e-e over a day toggles its notes
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (notesOpenFor !== null) closeNotes();
+      else if (statsMode) endStats();
+      else closeDatabase();
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.key.length !== 1) return;
+    typed = (typed + e.key.toLowerCase()).slice(-7);
+    const dbOpen = dbEl.classList.contains('open');
+    if (typed === 'journey') {
+      typed = '';
+      dbOpen ? closeDatabase() : openDatabase();
+    } else if (dbOpen && typed.endsWith('amode')) {
+      typed = '';
+      startStats();
+    } else if (typed.endsWith('ee') && dbOpen && hoveredRow !== null) {
+      typed = '';
+      notesOpenFor === hoveredRow ? closeNotes() : openNotes(hoveredRow);
+    }
+  });
+</script>
+</body>
+</html>
