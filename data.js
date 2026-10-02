@@ -25,6 +25,6 @@ const journalEntries = [
 
   { date: "2026-09-28", code: "79363551010#ffffff", notes: "first one" },
   { date: "2026-09-29", code: "88865570001#ffffff", notes: "horrible 1:3 study ratio before practice but stayed up studying until one" },
-  { date: "2026-09-30", code: "76646340010#ffffff", notes: "" },
+  { date: "2026-09-30", code: "76646341110#ffffff", notes: "" },
   
 ];
