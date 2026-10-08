@@ -29,4 +29,6 @@ const journalEntries = [
   { date: "2026-10-04", code: "77676671010#ffffff", notes: "45 pages ocad + 20 pages apush" },
   { date: "2026-10-05", code: "98226251110#ffffff", notes: "" },
   { date: "2026-10-06", code: "67444541010#ffffff", notes: "" },
+  { date: "2026-10-07", code: "67456461010#ffffff", notes: "started ball rolling with consistent acadec + notes" },
+  
 ];
