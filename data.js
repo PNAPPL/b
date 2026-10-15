@@ -33,6 +33,7 @@ const journalEntries = [
   { date: "2026-10-08", code: "56536340010#ffffff", notes: "" },
   { date: "2026-10-09", code: "77344350010#ffffff", notes: "" },
   { date: "2026-10-10", code: "57454470010#ffffff", notes: "" },
-    { date: "2026-10-12", code: "58674570010#ffffff", notes: "it rained today" },
+    { date: "2026-10-12", code: "58674571010#ffffff", notes: "it rained today" },
+    { date: "2026-10-14", code: "48543561010#ffffff", notes: "" },
 
 ];
